@@ -1,0 +1,333 @@
+### Chapter 1                       ############################
+#Grabbing a background map
+
+	library(ggmap)
+	corvallis <- c(lon = -123.2620, lat = 44.5646)
+
+	# Get map at zoom level 5: map_5
+	map_5 <- get_map(corvallis, zoom = 5, scale = 1)
+
+	# Plot map at zoom level 5
+	ggmap(map_5)
+
+	# Get map at zoom level 13: corvallis_map
+	corvallis_map <- get_map(corvallis, zoom = 13, scale = 1)
+
+	# Plot map at zoom level 13
+	ggmap(corvallis_map)
+
+#Putting it all together
+	
+	# Look at head() of sales
+	head(sales)
+
+	# Swap out call to ggplot() with call to ggmap()
+	ggmap(corvallis_map) +
+	  geom_point(aes(lon, lat), data = sales)
+	  
+	
+#Aesthetics
+
+	# Map color to year_built
+	ggmap(corvallis_map) +
+	geom_point(aes(lon, lat, color = year_built), data = sales)
+	
+	# Map size to bedrooms
+	ggmap(corvallis_map) +
+	geom_point(aes(lon, lat, size = bedrooms), data = sales)
+	
+	# Map color to price / finished_squarefeet
+	ggmap(corvallis_map) +
+	geom_point(aes(lon, lat, color = price / finished_squarefeet), data = sales)
+	
+#Different maps
+	
+	corvallis <- c(lon = -123.2620, lat = 44.5646)
+
+	# Add a maptype argument to get a satellite map
+	corvallis_map_sat <- get_map(corvallis, maptype = "satellite",zoom = 13)
+
+
+	# Edit to display satellite map
+	ggmap(corvallis_map_sat) +
+	  geom_point(aes(lon, lat, color = year_built), data = sales)
+	
+	
+	corvallis <- c(lon = -123.2620, lat = 44.5646)
+
+	# Add source and maptype to get toner map from Stamen Maps
+	corvallis_map_bw <- get_map(corvallis, source = "stamen", maptype = "toner",zoom = 13)
+
+	# Edit to display toner map
+	ggmap(corvallis_map_bw) +
+	  geom_point(aes(lon, lat, color = year_built), data = sales)
+
+ #Base layer
+ 
+	# Use base_layer argument to ggmap() to specify data and x, y mappings
+	ggmap(corvallis_map_bw,
+	base_layer = ggplot(data = sales, aes(lon, lat))) +
+	geom_point(aes(color = year_built)) 
+ 
+	# Use base_layer argument to ggmap() to specify data and x, y mappings
+	ggmap(corvallis_map_bw,
+	base_layer = ggplot(data = sales, aes(lon, lat))) +
+	geom_point(aes(color = class)) + facet_wrap(~ class)
+	
+#Quick Alternative: qmplot
+	
+	# Plot house sales using qmplot()
+	qmplot(lon, lat, data = sales, 
+       geom = "point", color = bedrooms) +
+	facet_wrap(~ month)
+	
+#Drawing Polygons
+	
+	# Add a point layer with color mapped to ward
+	ggplot(ward_sales, aes(lon, lat)) + geom_point(aes(color = ward))
+
+	# Add a point layer with color mapped to group
+	ggplot(ward_sales, aes(lon, lat)) + geom_point(aes(color = group))
+	
+	# Add a path layer with group mapped to group
+	ggplot(ward_sales, aes(lon, lat)) + geom_path(aes(group = group))
+	
+	# Add a polygon layer with fill mapped to ward, and group to group
+	ggplot(ward_sales, aes(lon, lat)) + geom_polygon(aes(fill = ward, group = group))
+	
+#Cloropleth Map
+	
+	# Fix the polygon cropping
+	ggmap(corvallis_map_bw, 
+      base_layer = ggplot(ward_sales, aes(lon, lat)), extent = "normal", maprange = FALSE) +
+	geom_polygon(aes(group = group, fill = ward))
+	
+	# Repeat, but map fill to num_sales
+	ggmap(corvallis_map_bw, 
+      base_layer = ggplot(ward_sales, aes(lon, lat)),
+      extent = "normal", maprange = FALSE) +
+	geom_polygon(aes(group = group, fill = num_sales))
+	
+	# Repeat again, but map fill to avg_price
+	ggmap(corvallis_map_bw, 
+      base_layer = ggplot(ward_sales, aes(lon, lat)),
+      extent = "normal", maprange = FALSE) +
+	geom_polygon(aes(group = group, fill = avg_price), alpha = 0.8)
+	
+#Raster data as a heatmap
+		
+	# Add a tile layer with fill mapped to predicted_price
+	ggmap(corvallis_map_bw) + geom_tile(data = preds, aes(lon, lat, fill = predicted_price), alpha = 0.8)
+	
+### Chapter 2                     ############################	
+	
+#Solts in Polygons
+	# 169th element of countries_spdf@polygons: one
+	one <- countries_spdf@polygons[[169]]
+
+	# Print one
+	print(one)
+
+	# Call summary() on one
+	summary(one)
+
+	# Call str() on one with max.level = 2
+	str(one, max.level = 2)
+
+#Hierarchy
+	one <- countries_spdf@polygons[[169]]
+
+	# str() with max.level = 2, on the Polygons slot of one
+	str(one@Polygons, max.level = 2)
+
+	# str() with max.level = 2, on the 6th element of the one@Polygons
+	str(one@Polygons[[6]], max.level = 2)
+
+	# Call plot on the coords slot of 6th element of one@Polygons
+	plot(one@Polygons[[6]]@coords)
+
+#Subsetting by Index
+	# Subset the 169th object of countries_spdf: usa
+	usa <- countries_spdf[169, ]
+
+	# Look at summary() of usa
+	summary(usa)
+
+	# Look at str() of usa
+	str(usa, max.level = 2)
+
+	# Call plot() on usa
+	plot(usa)
+
+#Accessing data in sp objects
+	# Call head() and str() on the data slot of countries_spdf
+	head(countries_spdf@data)
+	str(countries_spdf@data)
+
+	# Pull out the name column using $
+	countries_spdf$name
+
+	# Pull out the subregion column using [[
+	countries_spdf[["subregion"]]
+
+#Subsetting based on data attributes
+	# Create logical vector: is_nz
+	is_nz <- countries_spdf$name == "New Zealand"
+
+	# Subset countries_spdf using is_nz: nz
+	nz <- countries_spdf[is_nz, ]
+
+	# Plot nz
+	plot(nz)
+
+#tmap
+	library(sp)
+	library(tmap)
+
+	# Use qtm() to create a choropleth map of gdp
+	qtm(shp = countries_spdf, fill = "gdp")
+
+#Layers
+	library(sp)
+	library(tmap)
+
+	# Add style argument to the tm_fill() call
+	tm_shape(countries_spdf) +
+	  tm_fill(col = "population", style = "quantile") +
+	  tm_borders(col = "burlywood4") 
+	  
+
+	# New plot, with tm_bubbles() instead of tm_fill()
+	tm_shape(countries_spdf) +
+	  tm_bubbles(size = "population") +
+	  tm_borders(col = "burlywood4") 
+	
+#Projections
+	library(sp)
+library(tmap)
+
+# Switch to a Hobo–Dyer projection
+tm_shape(countries_spdf, projection = "hd") +
+  tm_grid(n.x = 11, n.y = 11) +
+  tm_fill(col = "population", style = "quantile")  +
+  tm_borders(col = "burlywood4") 
+
+# Switch to a Robinson projection
+	tm_shape(countries_spdf, projection = "robin") +
+	  tm_grid(n.x = 11, n.y = 11) +
+	  tm_fill(col = "population", style = "quantile")  +
+	  tm_borders(col = "burlywood4") 
+
+	# Add tm_style_classic() to your plot
+	tm_shape(countries_spdf, projection = "robin") +
+	  tm_grid(n.x = 11, n.y = 11) +
+	  tm_fill(col = "population", style = "quantile")  +
+	  tm_borders(col = "burlywood4") +
+	  tm_style_classic()
+	
+#Saving Maps
+	library(sp)
+	library(tmap)
+
+	# Plot from last exercise
+	tm_shape(countries_spdf) +
+	  tm_grid(n.x = 11, n.y = 11, projection = "longlat") +
+	  tm_fill(col = "population", style = "quantile")  +
+	  tm_borders(col = "burlywood4")
+
+	# Save a static version "population.png"
+	save_tmap(filename  = "population.png")
+
+	# Save an interactive version "population.html"
+	save_tmap(filename = "population.html")
+	
+### Chapter 3                     ############################	
+#Raster object
+	library(raster)
+
+	# Print pop
+	print(pop)
+
+	# Call str() on pop, with max.level = 2
+	str(pop, max.level = 2)
+
+	# Call summary on pop
+	summary(pop)
+
+#Subset
+	# Print pop_by_age
+	print(pop_by_age)
+
+	# Subset out the under_1 layer using [[
+	pop_by_age[["under_1"]]
+
+	# Plot the under_1 layer
+	plot(pop_by_age[["under_1"]])
+	
+#Raster
+	library(tmap)
+
+	# Specify pop as the shp and add a tm_raster() layer
+	tm_shape(pop) +
+	  tm_raster()
+
+	# Plot the under_1 layer in pop_by_age
+	  tm_shape(pop_by_age) +
+	  tm_raster(col = "under_1")
+
+
+	library(rasterVis)
+	# Call levelplot() on pop
+	  levelplot(pop)
+	  
+#Palette
+	library(RColorBrewer)
+	# 9 steps on the RColorBrewer "BuPu" palette: blups
+	blups <- brewer.pal(9, "BuPu")
+
+	# Add scale_fill_gradientn() with the blups palette
+	ggplot(preds) +
+	geom_tile(aes(lon, lat, fill = predicted_price), alpha = 0.8) +
+	scale_fill_gradientn(colors = blups)
+	
+	library(viridisLite)
+	# viridisLite viridis palette with 9 steps: vir
+	vir <- viridis(9)
+
+	# Add scale_fill_gradientn() with the vir palette
+	ggplot(preds) +
+	  geom_tile(aes(lon, lat, fill = predicted_price), alpha = 0.8) +
+	  scale_fill_gradientn(colors = vir)
+	  
+	  library(viridisLite)
+	# mag: a viridisLite magma palette with 9 steps
+	mag <- magma(9)
+
+	# Add scale_fill_gradientn() with the mag palette
+	ggplot(preds) +
+	  geom_tile(aes(lon, lat, fill = predicted_price), alpha = 0.8) +
+	scale_fill_gradientn(colors = mag )
+	  
+#Custome Palette
+	# Generate palettes from last time
+	library(RColorBrewer)
+	blups <- brewer.pal(9, "BuPu")
+
+	library(viridisLite)
+	vir <- viridis(9)
+	mag <- magma(9)
+
+	# Use the blups palette
+	tm_shape(prop_by_age) +
+	  tm_raster("age_18_24", palette = blups) +
+	  tm_legend(position = c("right", "bottom"))
+
+	# Use the vir palette
+	tm_shape(prop_by_age) +
+	  tm_raster("age_18_24", palette = vir) +
+	  tm_legend(position = c("right", "bottom"))
+
+	# Use the mag palette but reverse the order
+	tm_shape(prop_by_age) +
+	  tm_raster("age_18_24", palette = rev(mag)) +
+	  tm_legend(position = c("right", "bottom"))
